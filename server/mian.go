@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
+
 	"time"
 )
 
@@ -22,7 +23,7 @@ type server struct{}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	_, span := trace.StartSpan(ctx, "/grpc-server-template", trace.WithSampler(trace.AlwaysSample()))
+	_, span := trace.StartSpan(ctx, "/grpc-template", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	log.Printf("Received: %v", in.Name)
 	time.Sleep(80 * time.Millisecond)

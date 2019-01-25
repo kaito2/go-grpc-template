@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	address     = "localhost:50051"
+	//address     = "localhost:50051"
+	address = "34.73.89.238:50051"
 	defaultName = "world"
 )
 
@@ -49,7 +50,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		// Create a span with the background context, making this the parent span.
 		// A span must be closed.
-		ctx, span := trace.StartSpan(context.Background(), "/grpc-client-template", trace.WithSampler(trace.AlwaysSample()))
+		ctx, span := trace.StartSpan(context.Background(), "/grpc-template", trace.WithSampler(trace.AlwaysSample()))
 		time.Sleep(80 * time.Millisecond)
 		r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 		if err != nil {
