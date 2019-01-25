@@ -1,0 +1,4 @@
+[submodule "grpc-gen-circleci-template"]
+	path = grpc-gen-circleci-template
+	url = git@github.com:kaito2/grpc-gen-circleci-template.git
+	branch = generated/go
