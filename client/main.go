@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	pb "go-grpc-template/grpc-gen-circleci-template"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"log"
 	"os"
@@ -15,6 +17,19 @@ const (
 )
 
 func main() {
+	// Create and register a OpenCensus Stackdriver Trace exporter.
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		//ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
+		ProjectID: "sansigma-infra",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	trace.RegisterExporter(exporter)
+
+	// Configure 100% sample rate, otherwise, few traces will be sampled.
+	//trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
@@ -28,11 +43,19 @@ func main() {
 	if len(os.Args) > 1 {
 		name = os.Args[1]
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+	//ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	//defer cancel()
+
+	for i := 0; i < 10; i++ {
+		// Create a span with the background context, making this the parent span.
+		// A span must be closed.
+		ctx, span := trace.StartSpan(context.Background(), "/grpc-client-template", trace.WithSampler(trace.AlwaysSample()))
+		time.Sleep(80 * time.Millisecond)
+		r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+		if err != nil {
+			log.Fatalf("could not greet: %v", err)
+		}
+		log.Printf("Greeting: %s", r.Message)
+		span.End()
 	}
-	log.Printf("Greeting: %s", r.Message)
 }
