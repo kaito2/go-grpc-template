@@ -44,14 +44,11 @@ func main() {
 	if len(os.Args) > 1 {
 		name = os.Args[1]
 	}
-	//ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-	//defer cancel()
 
-	// Create a span with the background context, making this the parent span.
-	// A span must be closed.
 	for i := 0; i < 10; i++ {
-		bctx := context.Background()
-		ctx, span := trace.StartSpan(bctx, "grpc-template.client")//, trace.WithSampler(trace.AlwaysSample()))
+		// Create a span with the background context, making this the parent span.
+		// A span must be closed.
+		ctx, span := trace.StartSpan(context.Background(), "grpc-template.client")//, trace.WithSampler(trace.AlwaysSample()))
 		time.Sleep(80 * time.Millisecond)
 		r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 		if err != nil {
