@@ -5,6 +5,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	pb "go-grpc-template/grpc-gen-circleci-template"
 	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -42,6 +43,11 @@ func main() {
 	}
 	trace.RegisterExporter(exporter)
 
+	// Register the views to collect server request count.
+	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
+		log.Fatal(err)
+	}
+
 	// Configure 100% sample rate, otherwise, few traces will be sampled.
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
@@ -49,6 +55,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+
+	// Set up a new server with the OpenCensus
+	// stats handler to enable stats and tracing.
 	s := grpc.NewServer(grpc.StatsHandler(new(ocgrpc.ServerHandler)))
 	pb.RegisterGreeterServer(s, &server{})
 	// Register reflection service on gRPC server.
