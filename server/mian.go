@@ -23,7 +23,7 @@ type server struct{}
 
 // SayHello implements helloworld.GreeterServer
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	_, span := trace.StartSpan(ctx, "/grpc-template", trace.WithSampler(trace.AlwaysSample()))
+	ctx, span := trace.StartSpan(ctx, "grpc-template.server", trace.WithSampler(trace.AlwaysSample()))
 	defer span.End()
 	log.Printf("Received: %v", in.Name)
 	time.Sleep(80 * time.Millisecond)
