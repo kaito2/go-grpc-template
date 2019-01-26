@@ -47,18 +47,16 @@ func main() {
 	//ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 	//defer cancel()
 
-	for i := 0; i < 1; i++ {
-		// Create a span with the background context, making this the parent span.
-		// A span must be closed.
-		bctx := context.Background()
-		ctx, span := trace.StartSpan(bctx, "grpc-template.client", trace.WithSampler(trace.AlwaysSample()))
-		time.Sleep(80 * time.Millisecond)
-		r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
-		if err != nil {
-			log.Fatalf("could not greet: %v", err)
-		}
-		log.Printf("trace id: %v", ctx)
-		log.Printf("Greeting: %s", r.Message)
-		span.End()
+	// Create a span with the background context, making this the parent span.
+	// A span must be closed.
+	bctx := context.Background()
+	ctx, span := trace.StartSpan(bctx, "grpc-template.client", trace.WithSampler(trace.AlwaysSample()))
+	time.Sleep(80 * time.Millisecond)
+	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
 	}
+	log.Printf("trace id: %v", ctx)
+	log.Printf("Greeting: %s", r.Message)
+	span.End()
 }
