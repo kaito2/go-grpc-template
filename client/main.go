@@ -29,7 +29,7 @@ func main() {
 	trace.RegisterExporter(exporter)
 
 	// Configure 100% sample rate, otherwise, few traces will be sampled.
-	//trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
@@ -47,7 +47,7 @@ func main() {
 	//ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 	//defer cancel()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		// Create a span with the background context, making this the parent span.
 		// A span must be closed.
 		ctx, span := trace.StartSpan(context.Background(), "grpc-template.client", trace.WithSampler(trace.AlwaysSample()))
@@ -56,6 +56,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("could not greet: %v", err)
 		}
+		log.Printf("trace id: %v", span.SpanContext().TraceID)
 		log.Printf("Greeting: %s", r.Message)
 		span.End()
 	}
