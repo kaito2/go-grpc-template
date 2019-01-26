@@ -4,6 +4,7 @@ import (
 	"context"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	pb "go-grpc-template/grpc-gen-circleci-template"
+	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"log"
@@ -20,8 +21,7 @@ const (
 func main() {
 	// Create and register a OpenCensus Stackdriver Trace exporter.
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		//ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
-		ProjectID: "sansigma-infra",
+		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +32,7 @@ func main() {
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -49,14 +49,16 @@ func main() {
 
 	// Create a span with the background context, making this the parent span.
 	// A span must be closed.
-	bctx := context.Background()
-	ctx, span := trace.StartSpan(bctx, "grpc-template.client", trace.WithSampler(trace.AlwaysSample()))
-	time.Sleep(80 * time.Millisecond)
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+	for i := 0; i < 10; i++ {
+		bctx := context.Background()
+		ctx, span := trace.StartSpan(bctx, "grpc-template.client")//, trace.WithSampler(trace.AlwaysSample()))
+		time.Sleep(80 * time.Millisecond)
+		r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+		if err != nil {
+			log.Fatalf("could not greet: %v", err)
+		}
+		log.Printf("trace id: %v", ctx)
+		log.Printf("Greeting: %s", r.Message)
+		span.End()
 	}
-	log.Printf("trace id: %v", ctx)
-	log.Printf("Greeting: %s", r.Message)
-	span.End()
 }
