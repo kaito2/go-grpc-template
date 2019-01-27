@@ -1,3 +1,6 @@
+## なに
+Stackdriver Trace で gRPC のトレースを行うサンプル
+
 ## setup
 
 remove template gRPC codes
